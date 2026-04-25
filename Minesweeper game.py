@@ -8,7 +8,7 @@ class Minesweeper:
         self.difficulty = None
         self.grid_size = None
         self.mines_count = None
-        self.flags_count = 0  # Track number of placed flags
+        self.flags_count = 0
         self.show_difficulty_selection()
 
     def show_difficulty_selection(self):
@@ -23,7 +23,7 @@ class Minesweeper:
     def start_game(self, grid_size, mines_count):
         self.grid_size = grid_size
         self.mines_count = mines_count
-        self.flags_count = 0  # Reset flags on new game
+        self.flags_count = 0
         self.init_game()
 
     def init_game(self):
@@ -48,7 +48,7 @@ class Minesweeper:
                 btn = tk.Button(self.master, text='', width=4, height=2,
                                 command=lambda x=i, y=j: self.reveal(x, y))
                 btn.grid(row=i, column=j)
-                btn.bind("<Button-3>", lambda event, x=i, y=j: self.toggle_flag(event, x, y))  # Right-click event
+                btn.bind("<Button-3>", lambda event, x=i, y=j: self.toggle_flag(event, x, y))
                 self.buttons[i][j] = btn
 
         control_frame = tk.Frame(self.master)
@@ -84,7 +84,7 @@ class Minesweeper:
     def reveal(self, x, y):
         if self.game_over or self.revealed[x][y] or self.flagged[x][y]:
             return
-        self.move_history.append((x, y, self.revealed[x][y]))  # Store previous state for undo
+        self.move_history.append((x, y, self.revealed[x][y]))
         self._reveal_cell_bfs(x, y)
         self.check_win()
 
@@ -169,38 +169,27 @@ class Minesweeper:
                             self.buttons[i][j].config(text='', bg='SystemButtonFace')
 
     def auto_solve(self):
-        """Starts the step-by-step auto-solve process."""
-        # Initialize the queue for BFS
         self.auto_solve_queue = deque()
-
-        # Add all unrevealed safe cells to the queue
         for i in range(self.grid_size):
             for j in range(self.grid_size):
                 if not self.revealed[i][j] and not self.flagged[i][j] and self.board[i][j] != -1:
                     self.auto_solve_queue.append((i, j))
 
-        # Start the step-by-step solving process
         self._auto_solve_step()
 
     def _auto_solve_step(self):
-        """Processes one step in the BFS auto-solve."""
         if not self.auto_solve_queue:
-            # No more steps, check for win
             self.check_win()
             return
 
-        # Get the next cell to process
         x, y = self.auto_solve_queue.popleft()
 
-        # Skip already revealed or flagged cells
         if self.revealed[x][y] or self.flagged[x][y]:
-            self.master.after(100, self._auto_solve_step)  # Schedule the next step
+            self.master.after(100, self._auto_solve_step)
             return
 
-        # Reveal the current cell
         self._reveal_cell_bfs(x, y)
 
-        # If the cell is a "clear zone" (0), add its neighbors to the queue
         if self.board[x][y] == 0:
             for dx in [-1, 0, 1]:
                 for dy in [-1, 0, 1]:
@@ -208,7 +197,7 @@ class Minesweeper:
                     if 0 <= nx < self.grid_size and 0 <= ny < self.grid_size and not self.revealed[nx][ny]:
                         self.auto_solve_queue.append((nx, ny))
 
-        # Schedule the next step with a delay
+
         self.master.after(100, self._auto_solve_step)
 
     def restart_game(self):
